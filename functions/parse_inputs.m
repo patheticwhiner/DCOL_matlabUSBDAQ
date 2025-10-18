@@ -36,6 +36,7 @@ function config = parse_inputs(varargin)
     end
     
     % 计算相关参数
+    config.SampleRate = 2*config.SampleBand;
     config.NumChannels = length(config.ChannelIndices);  % 实际采集的通道数
     config.ChannelFirst = min(config.ChannelIndices);    % 起始通道
     config.ChannelLast = max(config.ChannelIndices);     % 结束通道

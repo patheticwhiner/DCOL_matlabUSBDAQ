@@ -6,7 +6,7 @@ function data = acquire_data(config)
     pv = libpointer('singlePtr', buffer);
     
     % 执行连续采集
-    if(0)
+    if(1)
         result = calllib('Usb_Daq_V52_Dll', 'ad_continu', ...
             config.DeviceID, ...           % dev
             config.Oversample, ...         % ad_os
@@ -20,18 +20,6 @@ function data = acquire_data(config)
             0, ...                         % ext_clk_pol
             config.TotalSamples, ...       % num
             pv);                           % databuf
-    else
-        result = calllib('Usb_Daq_V52_Dll', 'ad_continu', ...
-            0, ...                         % ad_os
-            0,...                          % ad_range
-            config.SampleBand*2, ...         % freq
-            0, ...                         % trig_sl
-            0, ...                         % trig_pol
-            0, ...                         % clk_sl
-            0, ...                         % ext_clk_pol
-            config.TotalSamples, ...       % num
-            pv);                           % databuf
-    end
     if result ~= 0
         error('数据采集失败，错误代码: %d', result);
     end

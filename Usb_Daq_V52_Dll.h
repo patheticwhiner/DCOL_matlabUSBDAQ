@@ -1,39 +1,49 @@
-// ÏÂÁĞ ifdef ¿éÊÇ´´½¨Ê¹´Ó DLL µ¼³ö¸ü¼òµ¥µÄ
-// ºêµÄ±ê×¼·½·¨¡£´Ë DLL ÖĞµÄËùÓĞÎÄ¼ş¶¼ÊÇÓÃÃüÁîĞĞÉÏ¶¨ÒåµÄ USB_DAQ_V52_DLL_EXPORTS
-// ·ûºÅ±àÒëµÄ¡£ÔÚÊ¹ÓÃ´Ë DLL µÄ
-// ÈÎºÎÆäËûÏîÄ¿ÉÏ²»Ó¦¶¨Òå´Ë·ûºÅ¡£ÕâÑù£¬Ô´ÎÄ¼şÖĞ°üº¬´ËÎÄ¼şµÄÈÎºÎÆäËûÏîÄ¿¶¼»á½«
-// USB_DAQ_V52_DLL_API º¯ÊıÊÓÎªÊÇ´Ó DLL µ¼ÈëµÄ£¬¶ø´Ë DLL Ôò½«ÓÃ´Ëºê¶¨ÒåµÄ
-// ·ûºÅÊÓÎªÊÇ±»µ¼³öµÄ¡£
-#ifdef USB_DAQ_V52_DLL_EXPORTS
-#define USB_DAQ_V52_DLL_API extern "C" __declspec(dllexport)
-#else
-#define USB_DAQ_V52_DLL_API extern "C" __declspec(dllimport)
+// ä¸‹åˆ— ifdef å—æ˜¯åˆ›å»ºä½¿ä» DLL å¯¼å‡ºæ›´ç®€å•çš„
+// å®çš„æ ‡å‡†æ–¹æ³•ã€‚æ­¤ DLL ä¸­çš„æ‰€æœ‰æ–‡ä»¶éƒ½æ˜¯ç”¨å‘½ä»¤è¡Œä¸Šå®šä¹‰çš„ USB_DAQ_V52_DLL_EXPORTS
+// ç¬¦å·ç¼–è¯‘çš„ã€‚åœ¨ä½¿ç”¨æ­¤ DLL çš„
+// ä»»ä½•å…¶ä»–é¡¹ç›®ä¸Šä¸åº”å®šä¹‰æ­¤ç¬¦å·ã€‚è¿™æ ·ï¼Œæºæ–‡ä»¶ä¸­åŒ…å«æ­¤æ–‡ä»¶çš„ä»»ä½•å…¶ä»–é¡¹ç›®éƒ½ä¼šå°†
+// USB_DAQ_V52_DLL_API å‡½æ•°è§†ä¸ºæ˜¯ä» DLL å¯¼å…¥çš„ï¼Œè€Œæ­¤ DLL åˆ™å°†ç”¨æ­¤å®å®šä¹‰çš„
+// ç¬¦å·è§†ä¸ºæ˜¯è¢«å¯¼å‡ºçš„ã€‚
+
+#ifdef __cplusplus
+extern "C" {
 #endif
-int openUSB(void);
-void closeUSB(void);
-void Reset(void);
-int get_device_num(void);
-int set_current_device(int num);
-int ad_single(int ad_os,int ad_range,float*  databuf);
-int  ad_continu_conf(int ad_os,int ad_range,int freq,int trig_sl,int trig_pol,int clk_sl,int ext_clk_pol);
-int Get_AdBuf_Size(void); 
-int Read_AdBuf(float* databuf,int num);
-int AD_continu_stop(void);
-int ad_continu(int ad_os,int ad_range,int freq,int trig_sl,int trig_pol,int clk_sl,int ext_clk_pol,int num,float* databuf);
-int Pwm_Out(int ch,int en,int freq,float duty);//ch0--3
-int Pulse_Out(int ch,int pulse);
-int Set_Pwm_In(int ch,int en);
-int Read_Pwm_In(int ch,float* freq,float* duty);
+
+#ifdef USB_DAQ_V52_DLL_EXPORTS
+#define USB_DAQ_V52_DLL_API __declspec(dllexport)
+#else
+#define USB_DAQ_V52_DLL_API __declspec(dllimport)
+#endif
+
+USB_DAQ_V52_DLL_API  int openUSB(void);
+USB_DAQ_V52_DLL_API  int closeUSB(void);
+
+USB_DAQ_V52_DLL_API  int get_device_num(void);
+USB_DAQ_V52_DLL_API int Reset_Usb_Device(int dev); 
+USB_DAQ_V52_DLL_API  int ad_single(int dev,int ad_os,int ad_range,float*  databuf);
+USB_DAQ_V52_DLL_API  int  ad_continu_conf(int dev,int ad_os,int ad_range,int ch_first,int ch_last,int freq,int trig_sl,int trig_pol,int clk_sl,int ext_clk_pol);
+USB_DAQ_V52_DLL_API int Get_AdBuf_Size(int dev); 
+USB_DAQ_V52_DLL_API int Read_AdBuf(int dev,float* databuf,int num);
+USB_DAQ_V52_DLL_API int AD_continu_stop(int dev);
+USB_DAQ_V52_DLL_API  int ad_continu(int dev,int ad_os,int ad_range,int ch_first,int ch_last,int freq,int trig_sl,int trig_pol,int clk_sl,int ext_clk_pol,int num,float* databuf);
+USB_DAQ_V52_DLL_API  int Pwm_Out(int dev,int ch,int en,int freq,float duty);//ch0--3
+USB_DAQ_V52_DLL_API  int Pulse_Out(int dev,int ch,int pulse);
+USB_DAQ_V52_DLL_API  int Set_Pwm_In(int dev,int ch,int en);
+USB_DAQ_V52_DLL_API  int Read_Pwm_In(int dev,int ch,float* freq,float* duty);
  
-int Read_Port_In(unsigned short* in_port);
-int Read_Port_Out(unsigned short* out_port);
+USB_DAQ_V52_DLL_API  int Read_Port_In(int dev,unsigned short* in_port);
+USB_DAQ_V52_DLL_API  int Read_Port_Out(int dev,unsigned short* out_port);
 
 
-int Write_Port_Out(unsigned short out_port);
-int Set_Port_Out(unsigned short out_port); 
-int Reset_Port_Out(unsigned short out_port);
-int Write_Port_OutL(unsigned char out_port);
-int Write_Port_OutH(unsigned char out_port);
+USB_DAQ_V52_DLL_API  int Write_Port_Out(int dev,unsigned short out_port);
+USB_DAQ_V52_DLL_API  int Set_Port_Out(int dev,unsigned short out_port); 
+USB_DAQ_V52_DLL_API  int Reset_Port_Out(int dev,unsigned short out_port);
+USB_DAQ_V52_DLL_API  int Write_Port_OutL(int dev,unsigned char out_port);
+USB_DAQ_V52_DLL_API  int Write_Port_OutH(int dev,unsigned char out_port);
 
-int Set_DA_Single(int ch,float da_value);
+USB_DAQ_V52_DLL_API int Set_DA_Single(int dev,int ch,float da_value);
+
+#ifdef __cplusplus
+}
+#endif
  

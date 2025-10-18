@@ -187,9 +187,27 @@ function startSampling(fig, sampleRate, sampleTime, channelCheckboxes, timeChann
         acquired.timeChannelCheckboxes = arrayfun(@(c) c.Value, timeChannelCheckboxes);
         acquired.freqChannelCheckboxes = arrayfun(@(c) c.Value, freqChannelCheckboxes);
         acquired.logScale = logScaleCheckbox.Value;
+        
+        % 创建时间向量
+        acquired.time_vector = (0:size(data, 2)-1) / config.SampleRate;
 
         % 将数据先保存到 UI 会话（appdata）以便后续访问
         setappdata(fig, 'lastAcquiredData', acquired);
+
+        % 将数据自动保存到 MATLAB 基础工作区（使用友好的变量名）
+        assignin('base', 'daqData', acquired.data);
+        assignin('base', 'daqConfig', acquired.config);
+        assignin('base', 'daqTimeVector', acquired.time_vector);
+        assignin('base', 'daqResults', acquired);
+        
+        % 在命令窗口显示工作区变量信息
+        fprintf('\n=== 数据已自动保存到工作区 ===\n');
+        fprintf('变量名称: daqData, daqConfig, daqTimeVector, daqResults\n');
+        fprintf('数据大小: %d × %d (通道 × 采样点)\n', size(acquired.data));
+        fprintf('采样率: %.0f Hz\n', acquired.config.SampleRate);
+        fprintf('采样时间: %.2f 秒\n', acquired.config.SampleTime);
+        fprintf('活跃通道: %s\n', mat2str(acquired.config.ChannelIndices));
+        fprintf('=============================\n\n');
 
         % 如果用户选中了保存选项，则写入磁盘
         if saveDataCheckbox.Value

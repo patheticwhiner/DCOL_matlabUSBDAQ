@@ -34,7 +34,7 @@ end
 
 % 显示采集结果摘要
 fprintf('\n=== 数据采集完成 ===\n');
-fprintf('采样带宽: %d Hz\n', config.SampleBand);
+fprintf('采样频率: %d Hz\n', config.SampleRate);
 fprintf('采样时间: %.1f 秒\n', config.SampleTime);
 fprintf('每通道采样点数: %d\n', config.SamplesPerChannel);
 fprintf('采集通道序号: [%s]\n', num2str(config.ChannelIndices));

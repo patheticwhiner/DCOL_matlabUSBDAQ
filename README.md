@@ -76,11 +76,14 @@ matlab_USB_DAQ/
 |
 ├── functions/                    # 核心功能模块
 │   ├── acquire_data.m            # 底层数据采集函数
+│   ├── analyze_spl.m             # 统一的SPL声压级分析函数（支持麦克风校准）
 │   ├── cleanup_usb_daq.m         # 设备清理函数
-│   ├── daq_ui.m                  # 主UI界面函数
+│   ├── daq_ui.m                  # 主UI界面函数（含麦克风校准功能）
 │   ├── parse_inputs.m            # 参数解析函数
+│   ├── performSPLAnalysis.m      # SPL分析协调函数
 │   ├── playAudio.m               # 音频回放函数
 │   ├── plotDaqData.m             # 数据绘图函数
+│   ├── plotSPLResults.m          # SPL结果可视化函数
 │   ├── startSampling.m           # 采集启动函数
 │   └── usb_daq_acquire.m         # 高级采集接口
 |
@@ -98,18 +101,22 @@ matlab_USB_DAQ/
 
 ### 2.1 核心功能模块说明
 
-- **`daq_ui.m`**：主要的图形用户界面，提供参数设置、通道选择、数据采集、实时显示和音频回放功能
+- **`daq_ui.m`**：主要的图形用户界面，提供参数设置、通道选择、数据采集、实时显示、音频回放、SPL分析和麦克风校准功能
 - **`usb_daq_acquire.m`**：高级数据采集接口，封装了完整的采集流程
 - **`acquire_data.m`**：底层数据采集实现，直接调用 DLL 函数
 - **`parse_inputs.m`**：参数解析和验证，确保采集参数的正确性
 - **`startSampling.m`**：UI 界面的采集逻辑，处理多通道显示和数据保存
 - **`playAudio.m`**：音频回放功能，可播放采集到的信号数据
+- **`analyze_spl.m`**：统一的SPL分析函数，使用Audio Toolbox的splMeter对象进行声压级分析，支持可选的麦克风校准功能
+- **`performSPLAnalysis.m`**：SPL分析协调函数，整合麦克风校准数据并调用analyze_spl函数
+- **`plotSPLResults.m`**：SPL结果可视化，绘制频带分析图表和总声压级
 
 ### 2.2 演示脚本说明
 
 - **`daq_demo_ad_single.m`**：演示单次 AD 采样，读取 16 路模拟输入的瞬时值
 - **`daq_demo_continuous_poll.m`**：演示连续采集的轮询模式，实时监控缓冲区状态
 - **`usb_daq_custom_channels.m`**：自定义通道采集的简化版本
+*注：为简化项目结构，已将原有的 `analyze_spl_simple.m` 和 `analyze_spl_with_calibration.m` 合并到 `analyze_spl.m` 统一函数中*
 
 
 
@@ -214,13 +221,28 @@ daq_ui
 - **保存数据到文件**：勾选后将在 `data/` 目录下保存 MAT 文件
 - **播放通道**：选择要回放的通道并点击"播放音频"按钮
 
-#### 4.2.4 实时显示
+#### 4.2.4 麦克风校准功能
+- **麦克风校准按钮**：点击进入麦克风灵敏度设置对话框
+- **灵敏度设置**：为每个通道设置麦克风灵敏度（mV/Pa）
+- **常用麦克风预设值**：提供标准测量麦克风的典型灵敏度值
+- **校准数据管理**：保存和应用麦克风校准设置到SPL分析
+
+#### 4.2.5 实时显示
 - **时域信号图**：显示采集到的原始信号波形，支持多通道叠加显示
 - **功率谱密度图**：显示信号的频域特性，支持线性/对数坐标切换
 
 ### 4.3 数据保存规则
 
-#### 4.3.1 文件保存
+#### 4.3.1 自动工作区保存
+每次通过 UI 进行数据采集后，数据会**自动保存**到 MATLAB 工作区中：
+- `daqData`：采集的原始数据矩阵 [采样点数 × 通道数]
+- `daqConfig`：采集配置参数结构体
+- `daqTimeVector`：时间向量
+- `daqResults`：完整结果结构体
+
+这些变量可以直接在命令窗口中使用，无需额外操作。
+
+#### 4.3.2 文件保存
 当勾选"保存数据到文件"时，系统会：
 - 在工程根目录下创建 `data/` 文件夹（如不存在）
 - 保存文件命名格式：`usb_daq_YYYYMMDD_HHMMSS.mat`
@@ -232,7 +254,7 @@ daq_ui
   - `acquired.freqChannelCheckboxes`：频域显示选择状态
   - `acquired.logScale`：对数坐标选择状态
 
-#### 4.3.2 会话保存
+#### 4.3.3 会话保存
 无论是否保存文件，采集数据都会保存在 UI 会话中，可通过以下方式访问：
 ```matlab
 % 获取 UI 窗口句柄
@@ -241,12 +263,15 @@ h = findall(0, 'Type', 'figure', 'Name', 'USB DAQ 数据采集系统');
 acquired = getappdata(h, 'lastAcquiredData');
 ```
 
-#### 4.3.3 加载保存的数据
+#### 4.3.4 数据访问示例
 ```matlab
-% 加载 MAT 文件
+% 1. 直接使用工作区变量（推荐）
+plot(daqTimeVector, daqData);  % 绘制时域数据
+fft_data = fft(daqData);       % 进行 FFT 分析
+
+% 2. 加载保存的 MAT 文件
 d = load('data/usb_daq_20251018_153045.mat');
 acquired = d.acquired;
-% 访问数据
 data = acquired.data;        % 采集数据
 config = acquired.config;    % 配置信息
 ```
@@ -265,7 +290,73 @@ config = acquired.config;    % 配置信息
 - 高采样率信号可能被音频驱动重采样
 - 只能播放已采集通道中的数据
 
-### 4.5 使用流程示例
+### 4.5 SPL (声压级) 分析功能
+
+#### 4.5.1 SPL分析介绍
+系统集成了基于 MATLAB Audio Toolbox `splMeter` 对象的专业声压级分析功能，支持：
+- **全频带分析**：计算总声压级
+- **1/1倍频程分析**：按倍频程频带分析
+- **1/3倍频程分析**：按1/3倍频程频带分析
+- **多种加权**：支持A加权、C加权和Z加权（线性）
+- **麦克风校准**：支持麦克风灵敏度校准，输出真实的dB SPL值
+
+#### 4.5.2 麦克风校准设置
+在进行SPL分析前，建议先设置麦克风校准：
+
+1. **打开校准对话框**：点击"麦克风校准"按钮
+2. **设置麦克风灵敏度**：
+   - 选择要启用的通道
+   - 输入各通道麦克风的灵敏度值（mV/Pa）
+   - 可使用"常用麦克风"按钮快速填入典型值
+3. **保存设置**：点击"保存设置"完成校准配置
+
+**常用麦克风灵敏度参考值**：
+- Brüel & Kjær 1/2英寸麦克风：~50 mV/Pa
+- PCB 1/4英寸麦克风：~10-20 mV/Pa
+- GRAS 1/2英寸麦克风：~50 mV/Pa
+
+#### 4.5.3 使用SPL分析（UI界面）
+1. **麦克风校准**：设置各通道麦克风灵敏度（推荐步骤）
+2. **数据采集**：完成数据采集（任意通道）
+3. **选择分析参数**：
+   - **加权模式**：选择 A、C 或 Z 加权
+   - **带宽类型**：选择全频带、1/1倍频程或1/3倍频程
+4. **执行分析**：点击"SPL分析"按钮
+5. **查看结果**：
+   - 自动弹出SPL分析结果图表
+   - 结果保存到工作区变量：`splTotal`, `splOctave`, `splCenterFreq`
+   - 显示校准后的真实声压级（dB SPL）
+
+#### 4.5.4 使用SPL分析（脚本模式）
+```matlab
+% 基本分析（无校准）
+[SPL_total, SPL_oct, fc] = analyze_spl(daqData, daqConfig.SampleRate, 'A', 'third_octave');
+
+% 带麦克风校准的分析
+micSensitivity = [50, 50, 10, 10, 50, 50, 20, 20]; % mV/Pa
+channelIndices = [0, 1, 2, 3]; % 0-based通道索引
+[SPL_total, SPL_oct, fc] = analyze_spl(daqData, daqConfig.SampleRate, 'A', 'third_octave', ...
+                                      'MicSensitivity', micSensitivity, ...
+                                      'ChannelIndices', channelIndices);
+
+% 结果可视化
+plotSPLResults(SPL_total, SPL_oct, fc, channelIndices, 'A', 'third_octave');
+```
+
+#### 4.5.5 SPL分析要求
+- **必需工具箱**：MATLAB Audio Toolbox
+- **最低版本**：MATLAB R2018a （`splMeter` 对象引入版本）
+- **数据格式**：支持多通道同时分析
+- **输出变量**：
+  - `splTotal` - 各通道总声压级 [通道数×1] (dB 或 dB SPL)
+  - `splOctave` - 频带声压级 [频带数×通道数] (dB 或 dB SPL)
+  - `splCenterFreq` - 中心频率 [频带数×1] (Hz)
+
+#### 4.5.6 校准与非校准模式对比
+- **无校准模式**：输出相对声压级（dB），适用于信号分析和对比
+- **校准模式**：输出绝对声压级（dB SPL），符合声学测量标准，可与标准声级计对比
+
+### 4.6 使用流程示例
 
 1. **基本采集流程**：
    ```
@@ -277,7 +368,12 @@ config = acquired.config;    % 配置信息
    选择多个通道 → 采集 → 在时域/频域图中对比不同通道特性
    ```
 
-3. **音频信号分析**：
+3. **专业声学SPL测量流程**：
+   ```
+   启动 daq_ui → 麦克风校准 → 采集声学信号 → SPL分析 → 查看校准后的dB SPL结果
+   ```
+
+4. **音频信号分析**：
    ```
    连接音频源到 AD 输入 → 采集 → 查看频谱 → 播放验证
    ```
@@ -297,7 +393,29 @@ config = acquired.config;    % 配置信息
                                  'ChannelIndices', [0,3,5], 'ADGain', 1);
 ```
 
-### 5.2 演示脚本
+### 5.2 SPL分析编程接口
+
+统一的 `analyze_spl` 函数支持灵活的编程调用：
+
+```matlab
+% 基本用法
+[SPL_total, SPL_oct, fc] = analyze_spl(data, fs, mode, bandwidth_type);
+
+% 带麦克风校准
+[SPL_total, SPL_oct, fc] = analyze_spl(data, fs, mode, bandwidth_type, ...
+                                      'MicSensitivity', sensitivity_array, ...
+                                      'ChannelIndices', channel_indices);
+
+% 参数说明
+% data: [通道×采样点] 或 [采样点×通道] 数据矩阵
+% fs: 采样频率 (Hz)
+% mode: 'A', 'C', 或 'Z' 加权
+% bandwidth_type: 'fullband', 'octave', 或 'third_octave'
+% sensitivity_array: [8×1] 麦克风灵敏度 (mV/Pa)
+% channel_indices: [N×1] 0-based通道索引
+```
+
+### 5.3 演示脚本
 
 项目提供了多个演示脚本，可帮助理解不同的采集模式：
 

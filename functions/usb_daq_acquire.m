@@ -36,7 +36,7 @@ function [data, config] = usb_daq_acquire(varargin)
     
     % 执行数据采集
     fprintf('开始数据采集...\n');
-    fprintf('采样频率: %d Hz\n', config.SampleBand);
+    fprintf('采样频率: %d Hz\n', config.SampleRate);
     fprintf('采样时间: %.1f 秒\n', config.SampleTime);
     fprintf('采集通道: [%s]\n', num2str(config.ChannelIndices));
     
