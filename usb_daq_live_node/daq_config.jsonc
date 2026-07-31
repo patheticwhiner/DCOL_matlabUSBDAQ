@@ -1,0 +1,30 @@
+{
+  // The DLL is copied next to the executable by CMake.
+  "dllPath": "Usb_Daq_V52_Dll.dll",
+  "device": 0,
+
+  // The current V5.2L firmware streams 16 ADC slots per freq tick. The
+  // application combines them into 8 physical channels at sampleRate=2*freq.
+  "sampleRate": 44100,
+  "rangeVolts": 5,
+  "oversample": 0,
+
+  "historySeconds": 10.0,
+  "previewSeconds": 2.0,
+  "readBlockFrames": 4096,
+  "pollIntervalMs": 2,
+
+  "channels": [true, false, false, false, false, false, false, false],
+
+  "recording": {
+    // GUI acquisition always buffers all 8 raw-voltage channels from its first
+    // frame. After stopping, choose whether to export the complete session as
+    // "f32", "wav", or "csv", or discard it. --record exports automatically
+    // after a headless/autostart run; "none" discards it.
+    "format": "none",
+    // true records raw AIN1-AIN8 even when only some channels are displayed.
+    "allChannels": true,
+    "directory": "../shared",
+    "prefix": "usb_daq"
+  }
+}

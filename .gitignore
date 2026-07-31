@@ -1,0 +1,4 @@
+shared
+usb_daq_live_node/build/
+usb_daq_live_node/captures/
+usb_daq_live_node/theme.dat

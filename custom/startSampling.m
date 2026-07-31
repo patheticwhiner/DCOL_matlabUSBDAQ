@@ -14,7 +14,7 @@ function startSampling(fig, sampleRate, sampleTime, channelCheckboxes, timeChann
 
     % 执行数据采集
     fprintf('=== USB DAQ 数据采集系统启动 ===\n');
-    addpath('functions');
+    addpath(fileparts(mfilename('fullpath')));
     [data, config] = usb_daq_acquire('SampleBand', sampleRate/2, ...
                                      'SampleTime', sampleTime, ...
                                      'ChannelIndices', selectedChannels);
@@ -84,7 +84,7 @@ function startSampling(fig, sampleRate, sampleTime, channelCheckboxes, timeChann
         if channelIdx < length(timeChannelCheckboxes) && timeChannelCheckboxes(channelIdx+1).Value
             colorIdx = mod(channelIdx, size(colors, 1)) + 1;
             plot(axTimeDomain, data(i, :), 'Color', colors(colorIdx, :), ...
-                 'DisplayName', sprintf('通道 %d', channelIdx), 'LineWidth', 1);
+                 'DisplayName', sprintf('AIN%d (AD%d)', channelIdx+1, channelIdx), 'LineWidth', 1);
             timeDisplayCount = timeDisplayCount + 1;
         end
     end
@@ -133,10 +133,10 @@ function startSampling(fig, sampleRate, sampleTime, channelCheckboxes, timeChann
             colorIdx = mod(channelIdx, size(colors, 1)) + 1;
             if useLogScale
                 semilogy(axFrequencyDomain, f, P1, 'Color', colors(colorIdx, :), ...
-                         'DisplayName', sprintf('通道 %d', channelIdx), 'LineWidth', 1);
+                         'DisplayName', sprintf('AIN%d (AD%d)', channelIdx+1, channelIdx), 'LineWidth', 1);
             else
                 plot(axFrequencyDomain, f, P1, 'Color', colors(colorIdx, :), ...
-                     'DisplayName', sprintf('通道 %d', channelIdx), 'LineWidth', 1);
+                     'DisplayName', sprintf('AIN%d (AD%d)', channelIdx+1, channelIdx), 'LineWidth', 1);
             end
             freqDisplayCount = freqDisplayCount + 1;
         end
@@ -171,8 +171,9 @@ function startSampling(fig, sampleRate, sampleTime, channelCheckboxes, timeChann
     % 可选：显示每个通道的统计信息
     fprintf('\n=== 通道数据统计 ===\n');
     for i = 1:config.NumChannels
-        fprintf('通道%d: 最大值=%.6f, 最小值=%.6f, 均值=%.6f, 标准差=%.6f\n', ...
-            config.ChannelIndices(i), max(data(i,:)), min(data(i,:)), mean(data(i,:)), std(data(i,:)));
+        channelIdx = config.ChannelIndices(i);
+        fprintf('AIN%d (AD%d): 最大值=%.6f, 最小值=%.6f, 均值=%.6f, 标准差=%.6f\n', ...
+            channelIdx+1, channelIdx, max(data(i,:)), min(data(i,:)), mean(data(i,:)), std(data(i,:)));
     end
 
     fprintf('\n程序执行完毕！\n');

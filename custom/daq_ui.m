@@ -14,41 +14,42 @@ function daq_ui()
     uilabel(fig, 'Position', [20, 580, 100, 22], 'Text', '采样时间 (秒):');
     sampleTimeInput = uieditfield(fig, 'numeric', 'Position', [130, 580, 100, 22], 'Value', 10);
 
-    % 通道选择区域
+    % 通道选择区域：物理 AIN1-AIN8 对应软件 AD0-AD7
     uilabel(fig, 'Position', [20, 540, 100, 22], 'Text', '通道选择:');
+    channelLabels = arrayfun(@formatChannelLabel, 0:7, 'UniformOutput', false);
     
-    % 创建通道复选框 (0-7通道)
+    % 创建通道复选框（显示物理通道和软件通道，内部仍使用0-based索引）
     channelCheckboxes = [];
     for i = 0:7
-        cb = uicheckbox(fig, 'Position', [20 + mod(i,4)*60, 500 - floor(i/4)*30, 50, 22], ...
-                       'Text', sprintf('CH%d', i));
+        cb = uicheckbox(fig, 'Position', [20 + mod(i,2)*135, 510 - floor(i/2)*26, 125, 22], ...
+                       'Text', channelLabels{i+1});
         channelCheckboxes = [channelCheckboxes, cb];
     end
 
     % 显示控制区域
-    uilabel(fig, 'Position', [20, 420, 100, 22], 'Text', '显示控制:');
+    uilabel(fig, 'Position', [20, 400, 100, 22], 'Text', '显示控制:');
     
     % 时域显示控制
-    uilabel(fig, 'Position', [20, 390, 80, 22], 'Text', '时域显示:');
-    timeShowAllCheckbox = uicheckbox(fig, 'Position', [100, 390, 50, 22], 'Text', '全选', 'Value', true);
+    uilabel(fig, 'Position', [20, 370, 80, 22], 'Text', '时域显示:');
+    timeShowAllCheckbox = uicheckbox(fig, 'Position', [100, 370, 50, 22], 'Text', '全选', 'Value', true);
     timeChannelCheckboxes = [];
     for i = 0:7
-        cb = uicheckbox(fig, 'Position', [20 + mod(i,4)*60, 360 - floor(i/4)*30, 50, 22], ...
-                       'Text', sprintf('CH%d', i));
+        cb = uicheckbox(fig, 'Position', [20 + mod(i,2)*135, 340 - floor(i/2)*26, 125, 22], ...
+                       'Text', channelLabels{i+1});
         timeChannelCheckboxes = [timeChannelCheckboxes, cb];
     end
 
     % 频域显示控制
-    uilabel(fig, 'Position', [20, 290, 80, 22], 'Text', '频域显示:');
-    freqShowAllCheckbox = uicheckbox(fig, 'Position', [100, 290, 50, 22], 'Text', '全选', 'Value', true);
+    uilabel(fig, 'Position', [20, 230, 80, 22], 'Text', '频域显示:');
+    freqShowAllCheckbox = uicheckbox(fig, 'Position', [100, 230, 50, 22], 'Text', '全选', 'Value', true);
     
     % 对数坐标选项
-    logScaleCheckbox = uicheckbox(fig, 'Position', [170, 290, 80, 22], 'Text', '对数坐标', 'Value', true);
+    logScaleCheckbox = uicheckbox(fig, 'Position', [170, 230, 80, 22], 'Text', '对数坐标', 'Value', true);
     
     freqChannelCheckboxes = [];
     for i = 0:7
-        cb = uicheckbox(fig, 'Position', [20 + mod(i,4)*60, 260 - floor(i/4)*30, 50, 22], ...
-                       'Text', sprintf('CH%d', i));
+        cb = uicheckbox(fig, 'Position', [20 + mod(i,2)*135, 200 - floor(i/2)*26, 125, 22], ...
+                       'Text', channelLabels{i+1});
         freqChannelCheckboxes = [freqChannelCheckboxes, cb];
     end
 
@@ -76,7 +77,8 @@ function daq_ui()
     uilabel(fig, 'Position', [rightPanelX, 560, 100, 22], 'Text', '音频播放:', ...
            'FontWeight', 'bold', 'FontColor', [0.8, 0.4, 0.2]);
     uilabel(fig, 'Position', [rightPanelX+10, 540, 80, 22], 'Text', '播放通道:');
-    playbackChannelDrop = uidropdown(fig, 'Position', [rightPanelX+90, 540, 80, 22], 'Items', {'CH0','CH1','CH2','CH3','CH4','CH5','CH6','CH7'}, 'Value', 'CH3');
+    playbackChannelDrop = uidropdown(fig, 'Position', [rightPanelX+90, 540, 110, 22], ...
+        'Items', channelLabels, 'ItemsData', 0:7, 'Value', 3);
     playButton = uibutton(fig, 'Position', [rightPanelX+10, 510, 100, 25], 'Text', '播放音频', ...
         'ButtonPushedFcn', @(btn,event) playAudio(fig, playbackChannelDrop.Value));
 
@@ -167,14 +169,14 @@ function openMicCalibrationDialog(parentFig)
     for ch = 1:8
         % 通道标签
         yPos = 480 - (ch-1) * 50;
-        uilabel(dlg, 'Position', [20, yPos, 80, 22], 'Text', sprintf('通道 %d:', ch-1), ...
+        uilabel(dlg, 'Position', [20, yPos, 110, 22], 'Text', [formatChannelLabel(ch-1), ':'], ...
                'FontWeight', 'bold');
         
         % 启用复选框
-        enableCheckboxes{ch} = uicheckbox(dlg, 'Position', [100, yPos, 60, 22], 'Text', '启用', 'Value', true);
+        enableCheckboxes{ch} = uicheckbox(dlg, 'Position', [130, yPos, 55, 22], 'Text', '启用', 'Value', true);
         
         % 灵敏度输入框
-        channelInputs{ch} = uieditfield(dlg, 'numeric', 'Position', [170, yPos, 100, 22], ...
+        channelInputs{ch} = uieditfield(dlg, 'numeric', 'Position', [190, yPos, 80, 22], ...
                                        'Value', micSensitivity(ch), 'Limits', [0.1, 1000]);
         
         % 单位标签
@@ -234,7 +236,7 @@ function showCommonMicValues(channelNum, inputField)
     % 创建选择对话框
     [selection, ok] = listdlg('ListString', micTypes(:,1), ...
                              'SelectionMode', 'single', ...
-                             'Name', sprintf('通道 %d 麦克风类型选择', channelNum-1), ...
+                             'Name', sprintf('%s 麦克风类型选择', formatChannelLabel(channelNum-1)), ...
                              'PromptString', '请选择麦克风类型:');
     
     if ok && selection <= size(micTypes, 1) - 1
@@ -242,7 +244,7 @@ function showCommonMicValues(channelNum, inputField)
         inputField.Value = sensitivity;
     elseif ok && selection == size(micTypes, 1)
         % 自定义输入
-        answer = inputdlg({sprintf('请输入通道 %d 的麦克风灵敏度 (mV/Pa):', channelNum-1)}, ...
+        answer = inputdlg({sprintf('请输入 %s 的麦克风灵敏度 (mV/Pa):', formatChannelLabel(channelNum-1))}, ...
                          '自定义灵敏度', 1, {num2str(inputField.Value)});
         if ~isempty(answer)
             newValue = str2double(answer{1});
@@ -255,12 +257,12 @@ end
 
 % 麦克风校准功能（未来扩展）
 function calibrateMicrophone(channelNum, inputField)
-    msgbox(sprintf(['通道 %d 麦克风校准功能\n\n' ...
+    msgbox(sprintf(['%s 麦克风校准功能\n\n' ...
                    '此功能可用于:\n' ...
                    '• 声级计对比校准\n' ...
                    '• 标准声源校准\n' ...
                    '• 参考麦克风校准\n\n' ...
-                   '当前为占位功能，可根据需要扩展实现。'], channelNum-1), ...
+                   '当前为占位功能，可根据需要扩展实现。'], formatChannelLabel(channelNum-1)), ...
           '校准功能', 'help');
 end
 
@@ -298,13 +300,18 @@ function saveMicCalibration(parentFig, channelInputs, enableCheckboxes, dlg)
     fprintf('\n=== 麦克风灵敏度设置已更新 ===\n');
     for i = 1:8
         if enabled(i)
-            fprintf('通道 %d: %.2f mV/Pa (启用)\n', i-1, sensitivity(i));
+            fprintf('%s: %.2f mV/Pa (启用)\n', formatChannelLabel(i-1), sensitivity(i));
         else
-            fprintf('通道 %d: %.2f mV/Pa (禁用)\n', i-1, sensitivity(i));
+            fprintf('%s: %.2f mV/Pa (禁用)\n', formatChannelLabel(i-1), sensitivity(i));
         end
     end
     fprintf('==============================\n\n');
     
     % 关闭对话框
     close(dlg);
+end
+
+% 将0-based软件通道转换为“物理通道（软件通道）”显示文本
+function label = formatChannelLabel(channelIdx)
+    label = sprintf('AIN%d (AD%d)', channelIdx + 1, channelIdx);
 end

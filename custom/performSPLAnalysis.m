@@ -46,9 +46,9 @@ function performSPLAnalysis(fig, weighting_mode, bandwidth_selection)
         for i = 1:length(activeChannels)
             ch_idx = activeChannels(i) + 1; % 转换为1-based索引
             if ch_idx <= length(micSensitivity)
-                fprintf('  通道 %d: %.2f mV/Pa\n', activeChannels(i), micSensitivity(ch_idx));
+                fprintf('  AIN%d (AD%d): %.2f mV/Pa\n', ch_idx, activeChannels(i), micSensitivity(ch_idx));
             else
-                fprintf('  通道 %d: 使用默认值 50 mV/Pa\n', activeChannels(i));
+                fprintf('  AIN%d (AD%d): 使用默认值 50 mV/Pa\n', ch_idx, activeChannels(i));
             end
         end
         

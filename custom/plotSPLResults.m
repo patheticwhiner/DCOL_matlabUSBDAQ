@@ -20,7 +20,9 @@ function plotSPLResults(SPL_total, SPL_oct, fc, channel_indices, mode, bandwidth
         % 全频带模式 - 只显示总SPL
         subplot(2, 1, 1);
         bar(channel_indices, SPL_total, 'FaceColor', [0.2, 0.6, 0.8]);
-        xlabel('通道');
+        xticks(channel_indices);
+        xticklabels(arrayfun(@formatChannelLabel, channel_indices, 'UniformOutput', false));
+        xlabel('物理通道（软件通道）');
         ylabel('SPL (dB)');
         title(sprintf('总声压级 (%s加权)', mode));
         grid on;
@@ -41,7 +43,7 @@ function plotSPLResults(SPL_total, SPL_oct, fc, channel_indices, mode, bandwidth
         table_data{1, 2} = sprintf('SPL (dB %s)', mode);
         
         for i = 1:num_channels
-            table_data{i+1, 1} = sprintf('CH%d', channel_indices(i));
+            table_data{i+1, 1} = formatChannelLabel(channel_indices(i));
             table_data{i+1, 2} = sprintf('%.2f', SPL_total(i));
         end
         
@@ -61,8 +63,8 @@ function plotSPLResults(SPL_total, SPL_oct, fc, channel_indices, mode, bandwidth
             semilogx(fc, SPL_oct(:, 1), 'o-', 'LineWidth', 2, 'MarkerSize', 6);
             xlabel('频率 (Hz)');
             ylabel('Leq (dB)');
-            title(sprintf('%s频带分析 - 通道 %d (%s加权)', ...
-                  get_bandwidth_name(bandwidth_type), channel_indices(1), mode));
+            title(sprintf('%s频带分析 - %s (%s加权)', ...
+                  get_bandwidth_name(bandwidth_type), formatChannelLabel(channel_indices(1)), mode));
             grid on;
             
             % 设置x轴刻度
@@ -80,7 +82,7 @@ function plotSPLResults(SPL_total, SPL_oct, fc, channel_indices, mode, bandwidth
             for ch = 1:num_channels
                 semilogx(fc, SPL_oct(:, ch), 'o-', 'Color', colors(ch, :), ...
                         'LineWidth', 2, 'MarkerSize', 6);
-                legend_entries{ch} = sprintf('CH%d', channel_indices(ch));
+                legend_entries{ch} = formatChannelLabel(channel_indices(ch));
             end
             
             xlabel('频率 (Hz)');
@@ -100,7 +102,9 @@ function plotSPLResults(SPL_total, SPL_oct, fc, channel_indices, mode, bandwidth
         % 下半部分：总SPL柱状图
         subplot(2, 1, 2);
         bar(channel_indices, SPL_total, 'FaceColor', [0.8, 0.4, 0.2]);
-        xlabel('通道');
+        xticks(channel_indices);
+        xticklabels(arrayfun(@formatChannelLabel, channel_indices, 'UniformOutput', false));
+        xlabel('物理通道（软件通道）');
         ylabel('总SPL (dB)');
         title(sprintf('总声压级 (%s加权)', mode));
         grid on;
@@ -116,7 +120,7 @@ function plotSPLResults(SPL_total, SPL_oct, fc, channel_indices, mode, bandwidth
     fprintf('\n=== SPL分析结果摘要 ===\n');
     fprintf('分析模式: %s加权, %s\n', mode, get_bandwidth_name(bandwidth_type));
     for i = 1:num_channels
-        fprintf('通道 %d: %.2f dB\n', channel_indices(i), SPL_total(i));
+        fprintf('%s: %.2f dB\n', formatChannelLabel(channel_indices(i)), SPL_total(i));
     end
     fprintf('====================\n\n');
 end
@@ -132,4 +136,8 @@ function name = get_bandwidth_name(bandwidth_type)
         otherwise
             name = bandwidth_type;
     end
+end
+
+function label = formatChannelLabel(channelIdx)
+    label = sprintf('AIN%d (AD%d)', channelIdx + 1, channelIdx);
 end

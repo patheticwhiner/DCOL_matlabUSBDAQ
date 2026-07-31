@@ -1,6 +1,6 @@
-function playAudio(fig, channelStr)
+function playAudio(fig, channelSelection)
 % playAudio - 从 UI 会话中读取最近一次采集的数据并播放选定通道
-% Usage: playAudio(fig, 'CH3')
+% Usage: playAudio(fig, 0) 或 playAudio(fig, 'AIN1 (AD0)')
 
 try
     acquired = getappdata(fig, 'lastAcquiredData');
@@ -13,8 +13,17 @@ catch
     return;
 end
 
-% 解析通道号
-channelIdx = sscanf(channelStr, 'CH%d');
+% 解析软件通道索引。GUI通过ItemsData直接传入0-based数值；同时保留字符串兼容。
+if isnumeric(channelSelection) && isscalar(channelSelection)
+    channelIdx = double(channelSelection);
+else
+    token = regexp(char(channelSelection), '(?:AD|CH)(\d+)', 'tokens', 'once');
+    if isempty(token)
+        channelIdx = [];
+    else
+        channelIdx = str2double(token{1});
+    end
+end
 if isempty(channelIdx)
     uialert(fig, '无效的通道选择。', '错误');
     return;
@@ -24,7 +33,7 @@ end
 chanList = acquired.selectedChannels;
 pos = find(chanList == channelIdx, 1);
 if isempty(pos)
-    uialert(fig, sprintf('通道 %d 未在当前采集中被选中。', channelIdx), '错误');
+    uialert(fig, sprintf('AIN%d (AD%d) 未在当前采集中被选中。', channelIdx+1, channelIdx), '错误');
     return;
 end
 

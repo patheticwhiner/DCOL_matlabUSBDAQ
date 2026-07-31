@@ -1,14 +1,14 @@
 
 clear;
 clc;
-loadlibrary('Usb_Daq_V52_Dll','Usb_Daq_V52_Dll.h');    % loadlibrary('LibName','HeadFile')¼ÓÔØ¶¯Ì¬Á´½Ó¿â£¬ÆäÖĞµÚÒ»¸öÎª¶¯Ì¬Á´½Ó¿âµÄÃû×Ö£¬µÚ¶ş¸öÎªÍ·ÎÄ¼ş
+loadlibrary('Usb_Daq_V52_Dll','Usb_Daq_V52_Dll.h');    % loadlibrary('LibName','HeadFile')åŠ è½½åŠ¨æ€é“¾æ¥åº“ï¼Œå…¶ä¸­ç¬¬ä¸€ä¸ªä¸ºåŠ¨æ€é“¾æ¥åº“çš„åå­—ï¼Œç¬¬äºŒä¸ªä¸ºå¤´æ–‡ä»¶
  
-x = calllib('Usb_Daq_V52_Dll','openUSB');    % calllib('LibName','Func',arg1,arg2,...,argN)µ÷ÓÃ¶¯Ì¬Á´½Ó¿âÄÚ²¿µÄº¯Êı£¬openUSB(void)ÎŞ²ÎÊıÊäÈë
+x = calllib('Usb_Daq_V52_Dll','openUSB');    % calllib('LibName','Func',arg1,arg2,...,argN)è°ƒç”¨åŠ¨æ€é“¾æ¥åº“å†…éƒ¨çš„å‡½æ•°ï¼ŒopenUSB(void)æ— å‚æ•°è¾“å…¥
  
-a = single( 1.0:8.0);    % ³õÊ¼»¯Ò»¸ö16ÔªËØµÄÒ»Î¬Êı×é
-pv = libpointer('singlePtr', a);    % ÓÃlibpointerº¯ÊıÀ´¹¹ÔìÖ¸Õë 
+a = single( 1.0:8.0);    % åˆå§‹åŒ–ä¸€ä¸ª16å…ƒç´ çš„ä¸€ç»´æ•°ç»„
+pv = libpointer('singlePtr', a);    % ç”¨libpointerå‡½æ•°æ¥æ„é€ æŒ‡é’ˆ
 x = calllib('Usb_Daq_V52_Dll','ad_single',0,1,pv);    % AD_single(int ad_os,int ad_range,float* adResult);
-ADsigle = get(pv, 'Value');    % Ö¸ÕëÖµ¸´ÖÆµ½ÁíÒ»¸öÊı×éÓÃÓÚÏÔÊ¾ 
+ADsigle = get(pv, 'Value');    % æŒ‡é’ˆå€¼å¤åˆ¶åˆ°å¦ä¸€ä¸ªæ•°ç»„ç”¨äºæ˜¾ç¤º
  
   a1=ADsigle(1)
    a2=ADsigle(2)
@@ -21,48 +21,48 @@ ADsigle = get(pv, 'Value');    % Ö¸ÕëÖµ¸´ÖÆµ½ÁíÒ»¸öÊı×éÓÃÓÚÏÔÊ¾
 
  
  
-% ÒÔ10KµÄ²ÉÑùËÙÂÊÁ¬Ğø²É¼¯1024¸öµã£¬ÔöÒæÎª0£¬¹ı²ÉÑù0
-NumSamp = 1000*8;    % Êı¾İ¸öÊı±ØĞëÊÇ8µÄÕûÊı±¶£¬Ò»¹²16Í¨µÀ£¬Ã¿Í¨µÀ²ÉÑù1000¸öÊı
-FrqSamp = 20000;    % ²ÉÑùÆµÂÊÉèÎª10KHz
-b = single(zeros(8,1000));    % ³õÊ¼»¯Ò»¸ö8X1000µÄÊı×éÓÃÓÚ±£´æÊı¾İ
-pv = libpointer('singlePtr', b);    % ÓÃlibpointerº¯ÊıÀ´¹¹ÔìÖ¸Õë 
+% ä»¥10Kçš„é‡‡æ ·é€Ÿç‡è¿ç»­é‡‡é›†1024ä¸ªç‚¹ï¼Œå¢ç›Šä¸º0ï¼Œè¿‡é‡‡æ ·0
+NumSamp = 1000*8;    % æ•°æ®ä¸ªæ•°å¿…é¡»æ˜¯8çš„æ•´æ•°å€ï¼Œä¸€å…±16é€šé“ï¼Œæ¯é€šé“é‡‡æ ·1000ä¸ªæ•°
+FrqSamp = 20000;    % é‡‡æ ·é¢‘ç‡è®¾ä¸º10KHz
+b = single(zeros(8,1000));    % åˆå§‹åŒ–ä¸€ä¸ª8X1000çš„æ•°ç»„ç”¨äºä¿å­˜æ•°æ®
+pv = libpointer('singlePtr', b);    % ç”¨libpointerå‡½æ•°æ¥æ„é€ æŒ‡é’ˆ
 x = calllib('Usb_Daq_V52_Dll','ad_continu',0,0,FrqSamp,0,0,0,0,NumSamp,pv);    % ad_continu(int ad_os,int ad_range,int freq,int trig_sl,int trig_pol,int clk_sl,int ext_clk_pol,int num,float* databuf);
-NumBuf = get(pv, 'Value');    % ½«Ö¸ÕëÊı¾İ¸´ÖÆµ½Ò»¸öÊı×éÄÚ
-buf = NumBuf(1,:);    % ÏÔÊ¾µÚÒ»Í¨µÀÊı¾İ
+NumBuf = get(pv, 'Value');    % å°†æŒ‡é’ˆæ•°æ®å¤åˆ¶åˆ°ä¸€ä¸ªæ•°ç»„å†…
+buf = NumBuf(1,:);    % æ˜¾ç¤ºç¬¬ä¸€é€šé“æ•°æ®
 plot(buf,'r');
 hold on ;
-buf = NumBuf(2,:);    % ÏÔÊ¾µÚ¶şÍ¨µÀÊı¾İ
+buf = NumBuf(2,:);    % æ˜¾ç¤ºç¬¬äºŒé€šé“æ•°æ®
 plot(buf,'b');
-% ÒÔÉÏÖ»ÏÔÊ¾ÁËÁ½¸öÍ¨µÀÊı×é£¬Ìí¼Ó³ÌĞò¿ÉÒÔ°Ñ16Í¨µÀÊı¾İÈ«²¿ÏÔÊ¾
+% ä»¥ä¸Šåªæ˜¾ç¤ºäº†ä¸¤ä¸ªé€šé“æ•°ç»„ï¼Œæ·»åŠ ç¨‹åºå¯ä»¥æŠŠ16é€šé“æ•°æ®å…¨éƒ¨æ˜¾ç¤º
 figure(3);
-buf3 = NumBuf(3,:);    % ÏÔÊ¾µÚ3Í¨µÀÊı¾İ
+buf3 = NumBuf(3,:);    % æ˜¾ç¤ºç¬¬3é€šé“æ•°æ®
 plot(buf3,'r');
 % hold on ;
 figure(4);
-buf4 = NumBuf(4,:);    % ÏÔÊ¾µÚ4Í¨µÀÊı¾İ
+buf4 = NumBuf(4,:);    % æ˜¾ç¤ºç¬¬4é€šé“æ•°æ®
 plot(buf4,'b');
 figure(5);
-buf5 = NumBuf(5,:);    % ÏÔÊ¾µÚ5Í¨µÀÊı¾İ
+buf5 = NumBuf(5,:);    % æ˜¾ç¤ºç¬¬5é€šé“æ•°æ®
 plot(buf5,'r');
 % hold on ;
 figure(6);
-buf6 = NumBuf(6,:);    % ÏÔÊ¾µÚ6Í¨µÀÊı¾İ
+buf6 = NumBuf(6,:);    % æ˜¾ç¤ºç¬¬6é€šé“æ•°æ®
 plot(buf6,'b');
 figure(7);
-buf7 = NumBuf(7,:);    % ÏÔÊ¾µÚ7Í¨µÀÊı¾İ
+buf7 = NumBuf(7,:);    % æ˜¾ç¤ºç¬¬7é€šé“æ•°æ®
 plot(buf7,'r');
 % hold on ;
 figure(8);
-buf8 = NumBuf(8,:);    % ÏÔÊ¾µÚ8Í¨µÀÊı¾İ
+buf8 = NumBuf(8,:);    % æ˜¾ç¤ºç¬¬8é€šé“æ•°æ®
 plot(buf8,'b');
 
-% IOÊäÈëÊä³ö
+% IOè¾“å…¥è¾“å‡º
 inport = uint16(0);
-[x,inport] = calllib('Usb_Daq_V52_Dll','Read_Port_In',inport);    % ¶ÁÈëÊäÈëIO¿Ú
-x = calllib('Usb_Daq_V52_Dll','Write_Port_Out',1);    % Êä³ö¿Ú0 ±äÎª¸ßµçÆ½,ÆäËû¿ÚÎª0
+[x,inport] = calllib('Usb_Daq_V52_Dll','Read_Port_In',inport);    % è¯»å…¥è¾“å…¥IOå£
+x = calllib('Usb_Daq_V52_Dll','Write_Port_Out',1);    % è¾“å‡ºå£0 å˜ä¸ºé«˜ç”µå¹³,å…¶ä»–å£ä¸º0
 
-% DAÊä³ö 
-x = calllib('Usb_Daq_V52_Dll','Set_DA_Single',0,5.6);    % 1Í¨µÀÊä³ö5.6V
-x = calllib('Usb_Daq_V52_Dll','Set_DA_Single',1,3.8);    % 2Í¨µÀÊä³ö3.8V
+% DAè¾“å‡º
+x = calllib('Usb_Daq_V52_Dll','Set_DA_Single',0,5.6);    % 1é€šé“è¾“å‡º5.6V
+x = calllib('Usb_Daq_V52_Dll','Set_DA_Single',1,3.8);    % 2é€šé“è¾“å‡º3.8V
 calllib('Usb_Daq_V52_Dll','closeUSB'); 
-  unloadlibrary( 'Usb_Daq_V52_Dll');    % ´ÓÄÚ´æÖĞĞ¶ÔØdll¿â
+  unloadlibrary( 'Usb_Daq_V52_Dll');    % ä»å†…å­˜ä¸­å¸è½½dllåº“

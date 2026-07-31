@@ -5,7 +5,7 @@
 
 %% 主程序 
 clear; close all; clc;
-addpath('functions');
+addpath(fullfile(fileparts(mfilename('fullpath')), 'custom'));
 fprintf('=== USB DAQ 数据采集系统启动 ===\n');
 
 % 配置参数（对应原始程序的设置）

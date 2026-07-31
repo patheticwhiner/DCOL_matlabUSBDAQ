@@ -44,7 +44,7 @@ function plotDaqData(fig, data, config, timeChannelCheckboxes, freqChannelCheckb
         if channelIdx < length(timeChannelCheckboxes) && timeChannelCheckboxes(channelIdx+1).Value
             colorIdx = mod(channelIdx, size(colors, 1)) + 1;
             plot(axTimeDomain, data(i, :), 'Color', colors(colorIdx, :), ...
-                 'DisplayName', sprintf('通道 %d', channelIdx), 'LineWidth', 1);
+                 'DisplayName', sprintf('AIN%d (AD%d)', channelIdx+1, channelIdx), 'LineWidth', 1);
             timeDisplayCount = timeDisplayCount + 1;
         end
     end
@@ -93,10 +93,10 @@ function plotDaqData(fig, data, config, timeChannelCheckboxes, freqChannelCheckb
             colorIdx = mod(channelIdx, size(colors, 1)) + 1;
             if useLogScale
                 semilogy(axFrequencyDomain, f, P1, 'Color', colors(colorIdx, :), ...
-                         'DisplayName', sprintf('通道 %d', channelIdx), 'LineWidth', 1);
+                         'DisplayName', sprintf('AIN%d (AD%d)', channelIdx+1, channelIdx), 'LineWidth', 1);
             else
                 plot(axFrequencyDomain, f, P1, 'Color', colors(colorIdx, :), ...
-                     'DisplayName', sprintf('通道 %d', channelIdx), 'LineWidth', 1);
+                     'DisplayName', sprintf('AIN%d (AD%d)', channelIdx+1, channelIdx), 'LineWidth', 1);
             end
             freqDisplayCount = freqDisplayCount + 1;
         end
