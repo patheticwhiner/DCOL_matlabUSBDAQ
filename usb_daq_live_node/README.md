@@ -1,7 +1,8 @@
 # USB DAQ Live Node
 
-面向恒凯科技 USB-DAQ V5.2L 的独立 C++ 实时采集程序。程序直接动态加载仓库中的
-`Usb_Daq_V52_Dll.dll`，不依赖 MATLAB。
+面向恒凯科技 USB-DAQ V5.2L 的跨平台 C++ 实时采集程序，不依赖 MATLAB。Windows
+动态加载仓库中的 `Usb_Daq_V52_Dll.dll`；Linux 在同一可执行程序中直接使用 libusb
+后端，不需要另建 `linux_usb_daq` 应用。
 
 设计参考 `DCOL-ANC-Tools/audio_udp_node`：采集线程只负责 USB 读取和落盘，GUI
 线程只负责控制和波形显示，两者通过线程安全的滚动历史缓冲协作。
@@ -10,7 +11,7 @@
 
 GUI 与参考工程 `audio_udp_node` 使用相同的 SDL2 + Dear ImGui + ImPlot 技术栈。
 程序默认采用 Light 主题，并提供右上角 `Dark mode` 按钮用于即时切换；界面使用
-Windows 系统字体并支持高 DPI 显示。启动时程序读取鼠标所在显示器的物理分辨率、
+系统字体并支持高 DPI 显示。启动时程序读取鼠标所在显示器的物理分辨率、
 可用工作区和 DPI，默认窗口约占工作区的 82%，不会自动最大化；字体、控件和侧栏
 仍按 `DPI/96` 同步缩放。检测结果会显示在顶部状态栏和控制台。采集参数、通道
 选择、运行状态和实时波形分区显示，其中通道始终按物理（软件）形式标注，例如
@@ -59,6 +60,8 @@ DLL freq 参数 = 物理通道采样率 / 2
 
 ## 构建
 
+### Windows
+
 依赖与参考项目相同：Visual Studio、CMake、vcpkg SDL2。当前机器的 vcpkg 路径为
 `C:\Users\DCOL\vcpkg`。
 
@@ -71,9 +74,48 @@ cmake --build build --config Release
 CMake 会下载 ImGui、ImPlot 和 nlohmann/json，并将厂商 DLL 与默认配置复制到可执行
 文件目录。
 
+### Linux
+
+Ubuntu/Debian 安装依赖：
+
+```bash
+sudo apt install build-essential cmake pkg-config libusb-1.0-0-dev \
+  libsdl2-dev libgl1-mesa-dev
+```
+
+构建并运行不接硬件的协议测试：
+
+```bash
+cmake -S . -B build-linux -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+cmake --build build-linux -j
+ctest --test-dir build-linux --output-on-failure
+```
+
+Linux 配置中的 `dllPath` 会被忽略。设备是 Vendor Specific USB，而非 USB Audio Class，
+因此无需额外内核模块，但普通用户需要 usbfs 权限：
+
+```bash
+sudo install -m 0644 udev/60-usb-daq.rules /etc/udev/rules.d/
+sudo udevadm control --reload-rules
+sudo udevadm trigger --attr-match=idVendor=04b4 --attr-match=idProduct=7809
+```
+
 ## 运行
 
-图形界面：
+Linux 无界面短时采集并保存 WAV：
+
+```bash
+./build-linux/usb_daq_live_node --headless --duration 3 --record wav \
+  --config ./daq_config.jsonc
+```
+
+Linux 图形界面：
+
+```bash
+./build-linux/usb_daq_live_node --config ./daq_config.jsonc
+```
+
+Windows 图形界面：
 
 ```powershell
 .\build\Release\usb_daq_live_node.exe --config .\daq_config.jsonc

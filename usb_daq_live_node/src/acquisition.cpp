@@ -20,7 +20,11 @@ std::string session_timestamp() {
     const auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(
         now.time_since_epoch()) % 1000;
     std::tm local{};
+#ifdef _WIN32
     localtime_s(&local, &value);
+#else
+    localtime_r(&value, &local);
+#endif
     std::ostringstream oss;
     oss << std::put_time(&local, "%Y%m%d_%H%M%S_")
         << std::setw(3) << std::setfill('0') << milliseconds.count();
@@ -238,6 +242,11 @@ void Acquisition::worker(DaqConfig config) {
     bool configured = false;
     std::string error;
 
+    auto api_error = [&](const std::string& operation) {
+        const std::string detail = api.error_detail();
+        return detail.empty() ? operation : operation + ": " + detail;
+    };
+
     auto finish = [&]() {
         if (configured) api.AD_continu_stop(config.device);
         streaming_.store(false);
@@ -271,7 +280,7 @@ void Acquisition::worker(DaqConfig config) {
             return;
         }
         if (api.openUSB() != 0) {
-            set_error("openUSB failed");
+            set_error(api_error("openUSB failed"));
             finish();
             return;
         }
@@ -318,7 +327,7 @@ void Acquisition::worker(DaqConfig config) {
             0,
             0);
         if (conf_result != 0) {
-            set_error("ad_continu_conf failed");
+            set_error(api_error("ad_continu_conf failed"));
             finish();
             return;
         }
@@ -335,7 +344,7 @@ void Acquisition::worker(DaqConfig config) {
         while (!stop_requested_.load()) {
             const int available = api.Get_AdBuf_Size(config.device);
             if (available < 0) {
-                set_error("Get_AdBuf_Size failed");
+                set_error(api_error("Get_AdBuf_Size failed"));
                 break;
             }
             current_backlog_floats_.store(available);
@@ -353,7 +362,7 @@ void Acquisition::worker(DaqConfig config) {
 
             const int read = api.Read_AdBuf(config.device, raw.data(), requested);
             if (read <= 0) {
-                set_error("Read_AdBuf failed");
+                set_error(api_error("Read_AdBuf failed"));
                 break;
             }
             if ((read % kPhysicalChannels) != 0) {

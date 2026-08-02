@@ -1,0 +1,2 @@
+# HengKai USB-DAQ V5.2L: allow local interactive users to use libusb.
+SUBSYSTEM=="usb", ATTR{idVendor}=="04b4", ATTR{idProduct}=="7809", TAG+="uaccess", MODE="0660"

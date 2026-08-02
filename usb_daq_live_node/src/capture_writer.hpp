@@ -135,7 +135,11 @@ private:
         const auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(
             now.time_since_epoch()) % 1000;
         std::tm local{};
+#ifdef _WIN32
         localtime_s(&local, &value);
+#else
+        localtime_r(&value, &local);
+#endif
         std::ostringstream oss;
         oss << std::put_time(&local, "%Y%m%d_%H%M%S_")
             << std::setw(3) << std::setfill('0') << milliseconds.count();

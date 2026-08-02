@@ -47,8 +47,8 @@
   - 电平标准：5V TTL（输入阈值：高>2V，低<0.8V；输出电平：高>2.5V，低<0.5V）。
 
 - **USB2.0接口**：
-  - 协议：符合USB2.0全速/高速标准（文档未明确速率，推测为12Mbps全速模式）。
-  - 数据流：驱动（`libusbK`）通过端点传输AD数据、接收DA/PWM控制指令。
+  - 当前板卡实测以 480 Mbps High-Speed 枚举，使用 Vendor Specific Bulk 接口。
+  - `usb_daq_live_node` 在 Windows 使用厂商 DLL，在 Linux 内置 libusb 后端；ADC 命令使用 `0x04`，数据流使用 `0x86`，无需维护另一套 Linux 应用。
 - **驱动功能**：
   - 封装DLL函数（如`ad_continu_conf()`），将用户API调用转为USB协议包。
 
@@ -97,6 +97,7 @@ matlab_USB_DAQ/
 ├── Usb_Daq_V52_Dll.dll          # USB DAQ 动态链接库
 ├── Usb_Daq_V52_Dll.h            # 头文件，包含函数声明
 |
+├── usb_daq_live_node/            # Windows/Linux 实时采集、显示及会话导出工具
 ├── daq_demo_ad_single.m          # 单次 AD 采样演示
 ├── daq_demo_continuous_poll.m    # 连续轮询采样演示
 └── usb_daq_custom_channels.m     # 自定义通道采集脚本
@@ -432,4 +433,3 @@ daq_demo_continuous_poll
 % 自定义通道采集
 usb_daq_custom_channels
 ```
-

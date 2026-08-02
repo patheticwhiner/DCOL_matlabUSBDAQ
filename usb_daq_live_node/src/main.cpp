@@ -2,7 +2,9 @@
 #include "config.hpp"
 #include "history.hpp"
 
+#ifdef _WIN32
 #include <windows.h>
+#endif
 
 #include <SDL.h>
 #include <SDL_opengl.h>
@@ -41,10 +43,17 @@ struct CliOptions {
 };
 
 std::filesystem::path executable_directory() {
+#ifdef _WIN32
     std::wstring buffer(32768, L'\0');
     const DWORD size = ::GetModuleFileNameW(nullptr, buffer.data(), static_cast<DWORD>(buffer.size()));
     buffer.resize(size);
     return std::filesystem::path(buffer).parent_path();
+#else
+    std::error_code error;
+    const std::filesystem::path executable = std::filesystem::read_symlink("/proc/self/exe", error);
+    if (!error && !executable.empty()) return executable.parent_path();
+    return std::filesystem::current_path();
+#endif
 }
 
 void print_usage() {
@@ -456,6 +465,9 @@ ImFont* load_font(ImGuiIO& io, float size) {
         "C:/Windows/Fonts/segoeui.ttf",
         "C:/Windows/Fonts/msyh.ttc",
         "C:/Windows/Fonts/tahoma.ttf",
+        "/usr/share/fonts/noto-cjk/NotoSansCJK-Regular.ttc",
+        "/usr/share/fonts/TTF/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
         nullptr
     };
     for (int index = 0; font_paths[index] != nullptr; ++index) {

@@ -1,16 +1,22 @@
 cmake_minimum_required(VERSION 3.20)
 project(usb_daq_live_node LANGUAGES CXX)
 
-if(NOT WIN32)
-    message(FATAL_ERROR "usb_daq_live_node requires Windows because the vendor driver is a Windows DLL")
-endif()
-
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(OpenGL REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
+
+set(USB_DAQ_PLATFORM_SOURCES)
+if(NOT WIN32)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(LIBUSB REQUIRED IMPORTED_TARGET libusb-1.0)
+    find_package(Threads REQUIRED)
+    list(APPEND USB_DAQ_PLATFORM_SOURCES
+        src/usb_daq_libusb_backend.cpp
+        src/usb_daq_protocol.cpp)
+endif()
 
 include(FetchContent)
 
@@ -31,6 +37,7 @@ FetchContent_MakeAvailable(imgui implot json)
 add_executable(usb_daq_live_node
     src/main.cpp
     src/acquisition.cpp
+    ${USB_DAQ_PLATFORM_SOURCES}
     ${imgui_SOURCE_DIR}/imgui.cpp
     ${imgui_SOURCE_DIR}/imgui_draw.cpp
     ${imgui_SOURCE_DIR}/imgui_tables.cpp
@@ -51,11 +58,20 @@ target_link_libraries(usb_daq_live_node PRIVATE
     SDL2::SDL2
     nlohmann_json::nlohmann_json)
 
-target_compile_definitions(usb_daq_live_node PRIVATE
-    NOMINMAX
-    WIN32_LEAN_AND_MEAN
-    SDL_MAIN_HANDLED
-    _CRT_SECURE_NO_WARNINGS)
+if(NOT WIN32)
+    target_link_libraries(usb_daq_live_node PRIVATE
+        PkgConfig::LIBUSB
+        Threads::Threads)
+endif()
+
+target_compile_definitions(usb_daq_live_node PRIVATE SDL_MAIN_HANDLED)
+
+if(WIN32)
+    target_compile_definitions(usb_daq_live_node PRIVATE
+        NOMINMAX
+        WIN32_LEAN_AND_MEAN
+        _CRT_SECURE_NO_WARNINGS)
+endif()
 
 if(MSVC)
     target_compile_options(usb_daq_live_node PRIVATE
@@ -67,10 +83,20 @@ else()
 endif()
 
 set(VENDOR_DLL "${CMAKE_CURRENT_SOURCE_DIR}/../Usb_Daq_V52_Dll.dll")
-if(EXISTS "${VENDOR_DLL}")
+if(WIN32 AND EXISTS "${VENDOR_DLL}")
     add_custom_command(TARGET usb_daq_live_node POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 "${VENDOR_DLL}" "$<TARGET_FILE_DIR:usb_daq_live_node>/Usb_Daq_V52_Dll.dll")
+endif()
+
+include(CTest)
+if(BUILD_TESTING AND NOT WIN32)
+    add_executable(usb_daq_protocol_tests
+        tests/protocol_tests.cpp
+        src/usb_daq_protocol.cpp)
+    target_include_directories(usb_daq_protocol_tests PRIVATE src)
+    target_compile_options(usb_daq_protocol_tests PRIVATE -Wall -Wextra -Wpedantic)
+    add_test(NAME usb_daq_protocol_tests COMMAND usb_daq_protocol_tests)
 endif()
 
 add_custom_command(TARGET usb_daq_live_node POST_BUILD
